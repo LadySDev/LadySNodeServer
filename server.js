@@ -79,7 +79,8 @@ io.on('connection', client => {
      });
 });
 
-server.listen(49153, () => {
-    console.log('listening on *:49153');
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+    //console.log('listening on *:');
 });
 
