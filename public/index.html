@@ -1,0 +1,94 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        
+        <div id="divGame">
+            <label>FPS</label><span id="fpsSpan"> 0</span><br>
+            <canvas id="canvas"></canvas>
+            <br>
+            <image src="../mainTexture.png" style="display:none;"></image>
+            <!-- <image src="../triangles-g7483f8819_640.png" style="display:none;"></image> -->
+            <image src="../grid.png" style="display:none;"></image>
+            <!-- <image src="../tilesheet.png" style="display:none;"></image> -->
+            <script src="../tilesheet.js"></script>
+        </div>
+
+        <script src="../plane.js"></script>
+
+        <script src="../world.js"></script>
+        
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/3.4.2/gl-matrix-min.js" integrity="sha512-eV9ExyTa3b+YHr99IBTYpwk4wbgDMDlfW8uTxhywO8dWb810fGUSKDgHhEv1fAqmJT4jyYnt1iWWMW4FRxeQOQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+        <script src="../gl-matrix-min.js"></script>
+
+        <script src="../shader.js"></script>
+        <script src="../graphics.js"></script>
+
+        <script>
+            // INIT
+            var myNetwork;
+            if(window.Worker){
+                myNetwork = new Worker('network.js');
+            }
+
+            var mat4 = glMatrix.mat4;
+            var vec4 = glMatrix.vec4;
+            var vec3 = glMatrix.vec3;
+            var myGraphics = new Graphics(mat4, vec4, vec3);
+
+            // NETWORK RECEIVE EVENT
+            myNetwork.onmessage = function(e) {
+    
+                var event = e.data[0];
+
+                if(event === "update"){
+                    myGraphics.update(e.data[1]);
+                }
+                
+            }
+        
+            // NETWORK SEND EVENT
+            function postNetwork(event, data){
+                myNetwork.postMessage([event, data]);
+            }
+
+            
+
+            
+            
+
+            // EVENT HANDLER
+            document.addEventListener('keydown', function(event) {
+                if (event.code == 'ArrowUp' || event.code == 'ArrowDown' || event.code == 'ArrowLeft' || event.code == 'ArrowRight') {
+                    console.log(event.code);
+                    
+                    postNetwork('translate', event.code);
+                }
+                else if(event.code === "NumpadAdd"){
+                    myGraphics.projection.zoom = myGraphics.projection.zoom - 1;
+                }
+                else if(event.code === "NumpadSubtract"){
+                    myGraphics.projection.zoom = myGraphics.projection.zoom + 1;
+                }
+            });
+            document.addEventListener('mousedown', function(event) {
+                
+                if(event.button === 0 && event.target.id === "canvas" && myGraphics.world !== null){
+                    
+                    var rect = event.target.getBoundingClientRect();
+                    var posX = event.clientX - rect.left;
+                    var posY = event.clientY - rect.top;
+                
+                    var clipX = posX / rect.width  *  2 - 1;
+                    var clipY = posY / rect.height * -2 + 1;
+
+                    //console.log("mouse left click at " + posX + " " + posY);
+
+                    myGraphics.onclick(posX, posY, clipX, clipY);
+                }
+            });
+        </script>
+
+    </body>
+</html>
